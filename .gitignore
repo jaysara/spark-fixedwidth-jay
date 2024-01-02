@@ -1,8 +1,13 @@
 # Compiled class file
 *.class
-
+.DS_*
+.idea/
+.idea/*
 # Log file
 *.log
+target
+target/
+target/*
 
 # BlueJ files
 *.ctxt
