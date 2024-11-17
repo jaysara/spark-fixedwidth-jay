@@ -7,6 +7,7 @@ When capturing key performance profiles and metrics for **ETL (Extract, Transfor
 ```
 // Remove the first 10 characters of the 'message' column
 Dataset<Row> updatedLogDf = logDf.withColumn("message", substring(col("message"), 11, length(col("message")).minus(10)));
+Dataset<Row> updatedLogDf = logDf.withColumn("message", expr("substr(message, 11, length(message))"));
 
 // Display the updated DataFrame
 updatedLogDf.show(false);
