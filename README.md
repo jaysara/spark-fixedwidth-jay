@@ -4,6 +4,14 @@ Create a custom Spark Relation to read fixedwidth file.
 https://harness-developer-hub.s3.us-east-2.amazonaws.com/labs/Harness_CI_CD_Dev_Days_Lab_Guide.pdf
 When capturing key performance profiles and metrics for **ETL (Extract, Transform, Load) batch jobs**, it's important to monitor various dimensions to ensure data pipelines are optimized for efficiency, scalability, and reliability. Here are the **key performance metrics** across the stages of an ETL batch process:
 
+```
+// Remove the first 10 characters of the 'message' column
+Dataset<Row> updatedLogDf = logDf.withColumn("message", substring(col("message"), 11, length(col("message")).minus(10)));
+
+// Display the updated DataFrame
+updatedLogDf.show(false);
+```
+
 ### **1. Execution Time**
    - **Total Execution Time**: The total time taken for the ETL batch job to complete (start-to-end).
    - **Stage-wise Time**:
