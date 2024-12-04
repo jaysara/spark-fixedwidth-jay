@@ -55,4 +55,35 @@ public class CompareParquetFiles {
         // Stop the Spark session
         spark.stop();
     }
+    /**
+    // Repartitioning for efficient parallel processing
+df1 = df1.repartition(200); // Adjust partition count based on dataset size
+df2 = df2.repartition(200);
+
+// Caching the DataFrames to optimize performance
+df1.cache();
+df2.cache();
+
+// Find differences between the two DataFrames
+Dataset<Row> df1Only = df1.except(df2);
+df1Only.persist(StorageLevel.MEMORY_AND_DISK()); // Persist the result
+Dataset<Row> df2Only = df2.except(df1);
+df2Only.persist(StorageLevel.MEMORY_AND_DISK());
+
+// Show differences if any
+if (!df1Only.isEmpty()) {
+    System.out.println("Rows present in File 1 but not in File 2:");
+    df1Only.show(false);
+} else {
+    System.out.println("No rows are exclusive to File 1.");
+}
+
+if (!df2Only.isEmpty()) {
+    System.out.println("Rows present in File 2 but not in File 1:");
+    df2Only.show(false);
+} else {
+    System.out.println("No rows are exclusive to File 2.");
+}
+
+    */
 }
