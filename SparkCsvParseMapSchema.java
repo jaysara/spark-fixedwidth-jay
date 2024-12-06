@@ -4,7 +4,7 @@ import org.apache.spark.sql.types.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class SegmentParser {
+public class SparkCsvParseMapSchema {
     public static void main(String[] args) {
         SparkSession spark = SparkSession.builder()
                 .appName("SegmentParser")
