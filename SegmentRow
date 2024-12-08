@@ -1,0 +1,40 @@
+package com.test.cobol;
+
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
+// Class representing a parsed segment row
+@Getter
+@Setter
+@ToString
+public class SegmentRow implements Serializable {
+    private String segmentType;
+    private List<Map<String, String>> fields;
+
+    public SegmentRow(String segmentType, List<Map<String, String>> fields) {
+        this.segmentType = segmentType;
+        this.fields = fields;
+    }
+
+    public SegmentRow() {
+        // No-arg constructor for serialization
+    }
+
+    public SegmentRow(String segmentType) {
+        this.segmentType = segmentType;
+    }
+
+    public String getSegmentType() {
+        return segmentType;
+    }
+
+    public List<Map<String, String>> getFields() {
+        return fields;
+    }
+}
