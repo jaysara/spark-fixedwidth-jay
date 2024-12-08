@@ -1,0 +1,14 @@
+package com.test.cobol;
+
+import lombok.*;
+
+import java.util.List;
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@ToString
+public class ConsumerRecord {
+    private String userRefnumber;
+    private List<SegmentRow> segmentRows;
+}
