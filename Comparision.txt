@@ -33,4 +33,51 @@ onlyInDf2.show(false);
 Dataset<Row> normalizedDf1 = df1.selectExpr("explode(mapColumn) as (key, value)");
 Dataset<Row> normalizedDf2 = df2.selectExpr("explode(mapColumn) as (key, value)");
 
+/*** For segmetnrow compare **/
+import org.apache.spark.sql.Encoders;
+
+// Define encoders for the schema
+Encoder<ConsumerRecord> consumerRecordEncoder = Encoders.bean(ConsumerRecord.class);
+
+// Load Parquet files
+Dataset<ConsumerRecord> dataset1 = spark.read()
+    .parquet("path/to/parquet1")
+    .as(consumerRecordEncoder);
+
+Dataset<ConsumerRecord> dataset2 = spark.read()
+    .parquet("path/to/parquet2")
+    .as(consumerRecordEncoder);
+boolean schemasMatch = dataset1.schema().equals(dataset2.schema());
+System.out.println("Schemas Match: " + schemasMatch);
+
+// Find records in dataset1 but not in dataset2
+Dataset<ConsumerRecord> onlyInDataset1 = dataset1.except(dataset2);
+
+// Find records in dataset2 but not in dataset1
+Dataset<ConsumerRecord> onlyInDataset2 = dataset2.except(dataset1);
+
+// Check if datasets are equal
+boolean datasetsMatch = onlyInDataset1.isEmpty() && onlyInDataset2.isEmpty();
+System.out.println("Datasets Match: " + datasetsMatch);
+
+System.out.println("Records only in Dataset 1:");
+onlyInDataset1.show(false);
+
+System.out.println("Records only in Dataset 2:");
+onlyInDataset2.show(false);
+
+Dataset<Row> flattenedDataset1 = dataset1
+    .withColumn("segment", functions.explode(col("segmentRows")))
+    .select("userRefNumber", "segment.segmentType", "segment.fieldName", "segment.fieldValue");
+
+Dataset<Row> flattenedDataset2 = dataset2
+    .withColumn("segment", functions.explode(col("segmentRows")))
+    .select("userRefNumber", "segment.segmentType", "segment.fieldName", "segment.fieldValue");
+
+// Compare flattened datasets
+Dataset<Row> onlyInFlattened1 = flattenedDataset1.except(flattenedDataset2);
+Dataset<Row> onlyInFlattened2 = flattenedDataset2.except(flattenedDataset1);
+
+onlyInFlattened1.show();
+onlyInFlattened2.show();
 
