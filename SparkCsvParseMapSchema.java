@@ -190,6 +190,49 @@ public class SparkCsvParseMapSchema {
 
         spark.stop();
     }
+
+    public void modifyDataSet()
+    {
+        Dataset<ConsumerRecord> modifiedUserFefNo =
+        parsedData.map(new MapFunction<ConsumerRecord, ConsumerRecord>() {
+            @Override
+            public ConsumerRecord call(ConsumerRecord consumerRecord) throws Exception {
+                ConsumerRecord newConsumerRecord = new ConsumerRecord();
+                newConsumerRecord.setUserRefnumber(consumerRecord.getUserRefnumber());
+                if(consumerRecord.getUserRefnumber().contains("000000000000000000029101")) {
+                    System.out.println("MODIFYING TR11 FOR USER REF NO " + consumerRecord.getUserRefnumber());
+
+                    List<SegmentRow> segmentRows = consumerRecord.getSegmentRows();
+                    List<SegmentRow> newsegmentRows = new ArrayList<>();
+                    for (SegmentRow segmentRow : segmentRows) {
+
+                        List<Map<String, String>> fields = segmentRow.getFields();
+                        System.out.println("Segment Type " + segmentRow.getSegmentType() + " Total fields " + fields.size());
+//                    for (Map<String, String> field : fields){
+//                        field.forEach((k,v)->System.out.println("Key "+k+" value "+v));
+//                };
+                        if (segmentRow.getSegmentType().contains("TR11")) {
+                            List<Map<String, String>> fieldsTR11 = segmentRow.getFields();
+                            fieldsTR11.remove(0);
+                            SegmentRow neweSegmentRow = new SegmentRow();
+                            neweSegmentRow.setSegmentType(segmentRow.getSegmentType());
+                            neweSegmentRow.setFields(fieldsTR11);
+                            newsegmentRows.add(neweSegmentRow);
+
+                        } else newsegmentRows.add(segmentRow);
+
+                    }
+                    newConsumerRecord.setSegmentRows(newsegmentRows);
+                }else
+                newConsumerRecord.setSegmentRows(consumerRecord.getSegmentRows());
+                return newConsumerRecord;
+               // return null;
+            }
+        }, Encoders.bean(ConsumerRecord.class));
+
+        modifiedUserFefNo.write().mode("overwrite").parquet("data/output-tr11changed.parquet");
+    }
+     
     private static Map<String, List<Map<String, String>>> parseString(String input, List<Segment> segments) {
         Map<String, List<Map<String, String>>>  answer = new LinkedHashMap<>();
         Map<String, Map<String, String>> parsedData = new LinkedHashMap<>();
