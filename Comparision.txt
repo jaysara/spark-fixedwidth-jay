@@ -1,0 +1,36 @@
+import org.apache.spark.api.java.function.MapFunction;
+import org.apache.spark.sql.Row;
+
+Dataset<Row> df1 = spark.read().parquet("path/to/file1.parquet");
+Dataset<Row> df2 = spark.read().parquet("path/to/file2.parquet");
+
+
+MapFunction<Row, Map<String, List<Map<String, String>>>> rowToMapFunction = row -> {
+    Map<String, List<Map<String, String>>> result = new HashMap<>();
+    for (String segmentType : row.schema().fieldNames()) {
+        List<Map<String, String>> segmentList = new ArrayList<>();
+        Row segmentRow = row.getAs(segmentType);
+        for (String fieldName : segmentRow.schema().fieldNames()) {
+            Map<String, String> fieldMap = new HashMap<>();
+            fieldMap.put(fieldName, segmentRow.getAs(fieldName).toString());
+            segmentList.add(fieldMap);
+        }
+        result.put(segmentType, segmentList);
+    }
+    return result;
+};
+
+Dataset<Map<String, List<Map<String, String>>>> mapDf1 = df1.map(rowToMapFunction, Encoders.javaSerialization(Map.class));
+Dataset<Map<String, List<Map<String, String>>>> mapDf2 = df2.map(rowToMapFunction, Encoders.javaSerialization(Map.class));
+
+
+
+Dataset<Map<String, List<Map<String, String>>>> onlyInDf1 = mapDf1.except(mapDf2);
+onlyInDf1.show(false);
+
+Dataset<Map<String, List<Map<String, String>>>> onlyInDf2 = mapDf2.except(mapDf1);
+onlyInDf2.show(false);
+Dataset<Row> normalizedDf1 = df1.selectExpr("explode(mapColumn) as (key, value)");
+Dataset<Row> normalizedDf2 = df2.selectExpr("explode(mapColumn) as (key, value)");
+
+
