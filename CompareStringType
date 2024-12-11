@@ -1,0 +1,74 @@
+import org.apache.spark.sql.*;
+import org.apache.spark.sql.types.*;
+import static org.apache.spark.sql.functions.*;
+import java.util.*;
+
+public class CompareLargeDatasets {
+    public static void main(String[] args) {
+        // Initialize Spark Session
+        SparkSession spark = SparkSession.builder()
+                .appName("Compare Large Datasets")
+                .master("local")
+                .getOrCreate();
+
+        // Define schema with 100 StringType columns
+        StructType schema = new StructType()
+                .add("id", DataTypes.StringType, false);
+        for (int i = 1; i <= 100; i++) {
+            schema = schema.add("col" + i, DataTypes.StringType, true);
+        }
+
+        // Create example datasets
+        Dataset<Row> dataset1 = spark.createDataFrame(
+                Arrays.asList(
+                        RowFactory.create("1", "A1", "B1", "C1", "D1"),
+                        RowFactory.create("2", "A2", "B2", "C2", "D2"),
+                        RowFactory.create("3", "A3", "B3", "C3", "D3")
+                ),
+                schema
+        );
+
+        Dataset<Row> dataset2 = spark.createDataFrame(
+                Arrays.asList(
+                        RowFactory.create("1", "A1", "B1", "C1", "D1"),
+                        RowFactory.create("2", "A2", "BX", "C2", "D2"),
+                        RowFactory.create("3", "AX", "B3", "CX", "D3")
+                ),
+                schema
+        );
+
+        // Join datasets on "id"
+        Dataset<Row> joined = dataset1.alias("ds1")
+                .join(dataset2.alias("ds2"), col("ds1.id").equalTo(col("ds2.id")), "inner");
+
+        // Dynamically generate comparison logic for all columns except "id"
+        List<String> fieldNames = Arrays.asList(schema.fieldNames());
+        List<Column> diffColumns = new ArrayList<>();
+        diffColumns.add(col("ds1.id").alias("id")); // Always include ID
+
+        for (String field : fieldNames) {
+            if (!"id".equals(field)) {
+                diffColumns.add(when(col("ds1." + field).equalTo(col("ds2." + field)), lit(null))
+                        .otherwise(concat_ws(" -> ", col("ds1." + field), col("ds2." + field)))
+                        .alias(field));
+            }
+        }
+
+        // Select all columns with differences
+        Dataset<Row> compared = joined.select(diffColumns.toArray(new Column[0]));
+
+        // Filter out rows where all columns (except id) are null
+        Column[] nullColumns = fieldNames.stream()
+                .filter(field -> !"id".equals(field))
+                .map(field -> col(field).isNotNull())
+                .toArray(Column[]::new);
+
+        Dataset<Row> differencesOnly = compared.filter(array(nullColumns).isNotNull());
+
+        // Show the result
+        differencesOnly.show(false);
+
+        // Stop Spark Session
+        spark.stop();
+    }
+}
