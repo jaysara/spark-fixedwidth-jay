@@ -2,7 +2,15 @@ To measure the **performance KPI metrics** for a system that **acquires data fro
 
 I need to define a copybook that describes the structure in variable size. Myf first fieild is FIELD_1 of length 12 bytes. The second field is a one digit field called STMT_CNT and third field is STMT. The STMT field has value based on number in STMT_CNT. Also the first four bytes of STMT field defines how long the record is. Can you define a copybook with this requirements
 ---
-
+   ascii record
+    ascii string(12) fcraKeyField1;
+    ascii decimal(1) stmtNum;
+    ascii decimal(3) tradeNum;
+    ascii decimal(3) prNum;
+    ascii string(44)[tradeNum] tradeVec;
+    ascii string(77)[prNum] prVec;
+    ascii string("\n") cnsmrStmt = "";
+   end
 ### **1. Data Acquisition Metrics**
 These metrics capture the performance of acquiring data from external systems.
 
