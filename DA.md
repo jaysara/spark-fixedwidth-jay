@@ -1,5 +1,6 @@
 To measure the **performance KPI metrics** for a system that **acquires data from external systems**, **cleanses it**, and **stores it for fulfillment**, you need to capture metrics that cover the entire data pipeline: from acquisition, through transformation (cleansing), to storage and delivery to the fulfillment system. Below is a breakdown of the **key performance indicators (KPIs)** you should focus on, along with ways to measure them.
 
+I need to define a copybook that describes the structure in variable size. Myf first fieild is FIELD_1 of length 12 bytes. The second field is a one digit field called STMT_CNT and third field is STMT. The STMT field has value based on number in STMT_CNT. Also the first four bytes of STMT field defines how long the record is. Can you define a copybook with this requirements
 ---
 
 ### **1. Data Acquisition Metrics**
